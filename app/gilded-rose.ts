@@ -18,52 +18,59 @@ export class GildedRose {
     }
 
     updateQuality() {
-        for (let i = 0; i < this.items.length; i++) {
-            if (this.items[i].name != 'Aged Brie' && this.items[i].name != 'Backstage passes to a TAFKAL80ETC concert') {
-                if (this.items[i].quality > 0) {
-                    if (this.items[i].name != 'Sulfuras, Hand of Ragnaros') {
-                        this.items[i].quality = this.items[i].quality - 1
-                    }
-                }
-            } else {
-                if (this.items[i].quality < 50) {
-                    this.items[i].quality = this.items[i].quality + 1
-                    if (this.items[i].name == 'Backstage passes to a TAFKAL80ETC concert') {
-                        if (this.items[i].sellIn < 11) {
-                            if (this.items[i].quality < 50) {
-                                this.items[i].quality = this.items[i].quality + 1
-                            }
-                        }
-                        if (this.items[i].sellIn < 6) {
-                            if (this.items[i].quality < 50) {
-                                this.items[i].quality = this.items[i].quality + 1
-                            }
-                        }
-                    }
-                }
+        this.items.forEach((item: Item) => {
+            if (item.name === 'Sulfuras, Hand of Ragnaros') {
+                return;
             }
-            if (this.items[i].name != 'Sulfuras, Hand of Ragnaros') {
-                this.items[i].sellIn = this.items[i].sellIn - 1;
+
+            item.sellIn--;
+
+            switch (item.name) {
+                case 'Aged Brie':
+                    this.handleAgedBrieQuality(item);
+                    break;
+                case 'Backstage passes to a TAFKAL80ETC concert':
+                    this.handleBackstagePassQuality(item);
+                    break;
+                case 'Conjured':
+                    this.handleConjuredQuality(item);
+                    break;
+                default:
+                    this.handleNormalItemQuality(item);
             }
-            if (this.items[i].sellIn < 0) {
-                if (this.items[i].name != 'Aged Brie') {
-                    if (this.items[i].name != 'Backstage passes to a TAFKAL80ETC concert') {
-                        if (this.items[i].quality > 0) {
-                            if (this.items[i].name != 'Sulfuras, Hand of Ragnaros') {
-                                this.items[i].quality = this.items[i].quality - 1
-                            }
-                        }
-                    } else {
-                        this.items[i].quality = this.items[i].quality - this.items[i].quality
-                    }
-                } else {
-                    if (this.items[i].quality < 50) {
-                        this.items[i].quality = this.items[i].quality + 1
-                    }
-                }
-            }
-        }
+        })
 
         return this.items;
+    }
+
+    modifyQualityBy(item: Item, num: number){
+        item.quality += num;
+        if (item.quality > 50) item.quality = 50;
+        if (item.quality < 0) item.quality = 0;
+    }
+
+    handleConjuredQuality(item) {
+        this.modifyQualityBy(item, -2);
+    }
+
+    handleAgedBrieQuality(item) {
+        item.sellIn < 0 ? this.modifyQualityBy(item, 2) : this.modifyQualityBy(item, 1);
+    }
+
+    handleBackstagePassQuality(item) {
+        if (item.sellIn <= 0 && item.quality > 0) {
+            item.quality = 0;
+            return;
+        }
+
+        item.sellIn < 5 ?
+            this.modifyQualityBy(item, 3) :
+            item.sellIn < 10 ?
+                this.modifyQualityBy(item, 2) :
+                this.modifyQualityBy(item, 1);
+    }
+
+    handleNormalItemQuality(item) {
+        item.sellIn < 0 ? this.modifyQualityBy(item, -2) : this.modifyQualityBy(item, -1);
     }
 }
